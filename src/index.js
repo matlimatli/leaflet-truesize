@@ -40,9 +40,16 @@ L.TrueSize = L.Layer.extend({
     this._options = Object.assign({}, this.options, options);
     this._geometryType = geoJSON.geometry.type;
     this._isMultiPolygon = this._geometryType === 'MultiPolygon';
+    this._rotation = 0;
+
 
     L.Util.setOptions(this, this._options);
     this._initGeoJson(geoJSON, this._options);
+  },
+
+  rotate(amount) {
+    this._rotation = (this._rotation + amount) % 360;
+    this._redraw(this._currentCenter);
   },
 
   _initGeoJson(geoJSON, options) {
@@ -77,7 +84,7 @@ L.TrueSize = L.Layer.extend({
     this._currentLayer = this._geoJSONLayer.getLayers()[0];
     const centerCoords = this._currentLayer.getCenter();
     this._origCenter = [centerCoords.lng, centerCoords.lat];
-
+    this._currentCenter = this._origCenter;
     // wrap currentlayer into draggable layer
     this._createDraggable(this._currentLayer);
 
@@ -183,6 +190,8 @@ L.TrueSize = L.Layer.extend({
   _redraw(newPos) {
     let newPoints;
 
+    this._currentCenter = newPos;
+
     if (this._isMultiPolygon) {
       newPoints = this._initialBearingDistance.map(params => [
         params.map(param => {
@@ -193,7 +202,7 @@ L.TrueSize = L.Layer.extend({
       ]);
     } else {
       newPoints = this._initialBearingDistance.map(param => {
-        return turfDestination(newPos, param.distance, param.bearing, {
+        return turfDestination(newPos, param.distance, param.bearing + this._rotation, {
           units: 'kilometers'
         }).geometry.coordinates;
       });
