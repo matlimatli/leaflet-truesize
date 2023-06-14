@@ -52,6 +52,10 @@ L.TrueSize = L.Layer.extend({
     this._currentId = id++;
   },
 
+  reCenter(pos) {
+    this._redraw([pos.lng, pos.lat])
+  },
+
   setCenter(center) {
     this._redraw(center.slice(0).reverse());
   },
